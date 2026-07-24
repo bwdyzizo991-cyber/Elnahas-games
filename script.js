@@ -24,7 +24,6 @@ function playCorrectSound() {
         osc.stop(audioCtx.currentTime + 0.3);
     } catch(e) {}
 
-    // تشغيل عبارات تعزيزية صوتية (أحسنت، برافو، ممتاز يا دكتور)
     const phrases = ["أحسنت", "برافو عليك", "ممتاز يا دكتور"];
     let randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
     speakText(randomPhrase);
@@ -125,6 +124,8 @@ function initTeacherDashboard() {
 function renderClassesDropdowns() {
     const studentSelect = document.getElementById('studentClassSelect');
     const contentSelect = document.getElementById('contentClassSelect');
+    if (!studentSelect || !contentSelect) return;
+    
     studentSelect.innerHTML = '';
     contentSelect.innerHTML = '';
 
@@ -172,6 +173,7 @@ function addStudent() {
 
 function renderClassesList() {
     const container = document.getElementById('classesListContainer');
+    if (!container) return;
     if (academyData.classes.length === 0) {
         container.innerHTML = '<p style="color:#94a3b8">لا توجد صفوف مسجلة بعد.</p>';
         return;
@@ -188,6 +190,7 @@ function renderClassesList() {
 
 function renderResults() {
     const container = document.getElementById('resultsContainer');
+    if (!container) return;
     if (academyData.classes.length === 0) {
         container.innerHTML = '<p style="color:#94a3b8">لا توجد بيانات متاحة.</p>';
         return;
@@ -230,10 +233,19 @@ function initContentTab() {
 function loadUnits() {
     const classId = document.getElementById('contentClassSelect').value;
     const container = document.getElementById('unitsContainer');
+    if (!container) return;
+    
     let cls = academyData.classes.find(c => c.id === classId);
     if (!cls) { container.innerHTML = ''; return; }
 
     container.innerHTML = `
+        <div style="background:rgba(15,23,42,0.5); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.1);">
+            <h4 style="color:#38bdf8; margin-bottom:8px;">إضافة وحدة جديدة للرقم/الصف:</h4>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="newUnitNameInput" placeholder="أدخل اسم الوحدة (مثال: Unit 1 - Animals)" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#1e293b; color:#fff;">
+                <button onclick="addUnitDirect('${cls.id}')" style="background:#10b981; border:none; color:#fff; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">إضافة الوحدة 📁</button>
+            </div>
+        </div>
         <p style="margin-bottom:10px; color:#cbd5e1;">عدد الوحدات الحالية: ${cls.units.length} / 12</p>
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:15px;">
             ${cls.units.map((u, index) => `
@@ -250,18 +262,19 @@ function loadUnits() {
     `;
 }
 
-function addUnit() {
-    const classId = document.getElementById('contentClassSelect').value;
+function addUnitDirect(classId) {
+    const input = document.getElementById('newUnitNameInput');
+    const unitTitle = input ? input.value.trim() : '';
+    if (!unitTitle) return alert('الرجاء كتابة اسم الوحدة أولاً!');
+
     let cls = academyData.classes.find(c => c.id === classId);
     if (!cls) return;
     if (cls.units.length >= 12) return alert('عذراً، الحد الأقصى هو 12 وحدة فقط لكل صف!');
 
-    let unitTitle = prompt('أدخل عنوان الوحدة (مثال: Animals & Nature):');
-    if (!unitTitle) return;
-
     cls.units.push({ id: 'unit_' + Date.now(), title: unitTitle, media: [], aiGames: [] });
     saveData();
     loadUnits();
+    alert('تمت إضافة الوحدة بنجاح ✅');
 }
 
 function addMediaToUnit(classId, unitId) {
@@ -307,6 +320,7 @@ function initStudentDashboard() {
     document.getElementById('studentTotalStars').textContent = loggedInUser.stars;
 
     const grid = document.getElementById('studentUnitsGrid');
+    if (!grid) return;
     if (activeStudentClass.units.length === 0) {
         grid.innerHTML = '<p style="color:#94a3b8; text-align:center; grid-column:1/-1;">لم يقم المعلم بإضافة وحدات تعليمية بعد.</p>';
         return;
@@ -371,9 +385,11 @@ function checkStudentAnswer(selected, correct) {
 }
 
 function openPlatformImageModal() {
-    document.getElementById('platformImageModal').classList.remove('hidden');
+    let modal = document.getElementById('platformImageModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
+    let modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('hidden');
 }
