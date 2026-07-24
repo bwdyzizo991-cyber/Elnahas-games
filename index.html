@@ -1,175 +1,92 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>النحاس أكاديمي - Al-Nahas Academy</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>النحاس أكاديمي - منصة الألعاب التعليمية</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Background Particles -->
-<div class="bg-particles">
-  <div class="particle p1"></div>
-  <div class="particle p2"></div>
-  <div class="particle p3"></div>
-</div>
-
-<!-- ========================
-     LOGIN SCREEN
-     ======================== -->
-<div id="login-screen">
-  <div class="login-container">
-    <div class="login-photo">
-      <div style="display:inline-block; animation: bounce 2s infinite">
-        <img src="https://ui-avatars.com/api/?name=M+G&background=7c3aed&color=fff&size=256&bold=true&font-size=0.4" alt="المعلم">
-      </div>
-      <h1 class="login-title">النحاس أكاديمي</h1>
-      <p class="login-subtitle">Al-Nahas Academy</p>
-    </div>
-
-    <div class="login-card">
-      <div class="role-tabs">
-        <button class="role-tab active-teacher" onclick="setRole('teacher')">👨‍🏫 المعلم</button>
-        <button class="role-tab" onclick="setRole('student')">👦 الطالب</button>
-      </div>
-
-      <div id="login-form-area">
-        <div class="form-group">
-          <label class="form-label" id="username-label">👤 اسم المستخدم</label>
-          <input type="text" id="login-username" class="form-input" placeholder="أدخل اسم المستخدم" autocomplete="off">
+    <!-- شاشة رأس الصفحة / لوحة المعلومات -->
+    <header class="app-header">
+        <div class="user-profile">
+            <span class="academy-title">النحاس أكاديمي</span>
+            <span class="student-grade">أولى ابتدائي</span>
         </div>
-        <div class="form-group">
-          <label class="form-label">🔒 كلمة المرور</label>
-          <input type="password" id="login-password" class="form-input" placeholder="أدخل كلمة المرور">
+        <div class="score-badge">
+            ⭐ <span class="star-counter">0</span>/600
         </div>
-        <div id="login-error" class="login-error hidden"></div>
-        <button id="login-btn" class="btn btn-teacher mt-6" onclick="handleLogin()">🚀 دخول</button>
-      </div>
-
-      <div id="login-success-area" class="login-success hidden">
-        <div class="emoji">🎉</div>
-        <p class="msg">مرحباً بك!</p>
-      </div>
-    </div>
-
-    <div class="login-footer">English is easy with Mr Ghazy ✨</div>
-  </div>
-</div>
-
-<!-- ========================
-     DASHBOARD SCREEN
-     ======================== -->
-<div id="dashboard-screen" class="hidden">
-  <!-- Top Nav -->
-  <div class="top-nav">
-    <div class="nav-brand">
-      <img src="https://ui-avatars.com/api/?name=M+G&background=7c3aed&color=fff&size=80&bold=true" alt="">
-      <h2>النحاس أكاديمي</h2>
-    </div>
-    <div class="nav-user">
-      <span class="nav-user-name" id="nav-user-name"></span>
-      <button class="btn-logout" onclick="handleLogout()">🚪 خروج</button>
-    </div>
-  </div>
-
-  <!-- Dashboard Content -->
-  <div class="dashboard-content">
-    <!-- Teacher: Units List -->
-    <div id="view-teacher-units" class="hidden">
-      <div class="dashboard-header">
-        <h1>📚 الوحدات الدراسية</h1>
-        <p>إدارة الوحدات والألعاب التعليمية</p>
-      </div>
-      <div class="units-grid" id="units-grid"></div>
-    </div>
-
-    <!-- Teacher: Unit Detail -->
-    <div id="view-teacher-unit" class="hidden">
-      <button class="back-btn" onclick="showView('view-teacher-units')">→ العودة للوحدات</button>
-      <div class="dashboard-header">
-        <h1 id="unit-detail-title"></h1>
-        <p id="unit-detail-meta"></p>
-      </div>
-
-      <!-- Upload Section -->
-      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
-           ondragover="event.preventDefault(); this.classList.add('drag-over')"
-           ondragleave="this.classList.remove('drag-over')"
-           ondrop="handleFileDrop(event)">
-        <div class="icon">📁</div>
-        <h3>ارفع صور الدرس / الامتحان</h3>
-        <p>اضغط أو اسحب الصور هنا (حتى 5 صور)</p>
-        <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="handleFileSelect(event)">
-      </div>
-      <div class="upload-preview" id="upload-preview"></div>
-
-      <!-- Generate Button -->
-      <button id="btn-generate" class="btn btn-generate mt-4" onclick="generateGames()" disabled>
-        🤖 توليد الألعاب بالذكاء الاصطناعي
-      </button>
-
-      <!-- Progress -->
-      <div class="generation-progress" id="generation-progress">
-        <div class="progress-bar-container">
-          <div class="progress-bar-fill indeterminate" id="progress-bar"></div>
+        <div class="student-pill">
+            👋 خديجه غازي
         </div>
-        <p class="progress-text" id="progress-text">🔄 جاري تحليل الصور وتوليد الألعاب...</p>
-      </div>
+        <button class="exit-btn" onclick="goHome()">خروج</button>
+    </header>
 
-      <!-- Games in Unit -->
-      <div class="games-grid" id="unit-games-grid"></div>
+    <!-- المحتوى الرئيسي (قائمة الألعاب) -->
+    <main class="games-container">
+        <div class="unit-banner">
+            <h2>Unit 1 🎮</h2>
+            <p>0/100 نجمة في الوحدة الحالية ⭐</p>
+        </div>
+
+        <div class="games-grid">
+            <!-- لعبة 1 -->
+            <div class="game-card" onclick="openGameModal('safe-cracker')">
+                <div class="game-icon lock-icon">🔒</div>
+                <h3>Safe Cracker</h3>
+                <p>رتب الحروف</p>
+                <div class="stars-row">☆☆☆☆☆☆☆☆☆☆</div>
+            </div>
+
+            <!-- لعبة 2 -->
+            <div class="game-card" onclick="openGameModal('spelling-bee')">
+                <div class="game-icon bee-icon">🐝</div>
+                <h3>Spelling Bee</h3>
+                <p>نحلة الهجاء</p>
+                <div class="stars-row">☆☆☆☆☆☆☆☆☆☆</div>
+            </div>
+
+            <!-- لعبة 3 -->
+            <div class="game-card" onclick="openGameModal('sentence-builder')">
+                <div class="game-icon doc-icon">📄</div>
+                <h3>Sentence Builder</h3>
+                <p>رتب الجملة</p>
+                <div class="stars-row">☆☆☆☆☆☆☆☆☆☆</div>
+            </div>
+
+            <!-- لعبة 4 -->
+            <div class="game-card" onclick="openGameModal('fill-blank')">
+                <div class="game-icon pencil-icon">✏️</div>
+                <h3>Fill in the Blank</h3>
+                <p>أكمل الجملة</p>
+                <div class="stars-row">☆☆☆☆☆☆☆☆☆☆</div>
+            </div>
+
+            <!-- لعبة 5 -->
+            <div class="game-card" onclick="openGameModal('time-machine')">
+                <div class="game-icon clock-icon">⏰</div>
+                <h3>Time Machine</h3>
+                <p>آلة الزمن</p>
+                <div class="stars-row">☆☆☆☆☆☆☆☆☆☆</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- نافذة اللعبة التفاعلية (Modal) -->
+    <div id="gameModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="questionProgress">1/10</span>
+                <span id="currentScore">⭐ 0/1</span>
+                <button class="close-modal" onclick="closeGameModal()">خروج ✕</button>
+            </div>
+            <div id="gameBody">
+                <!-- يتم حقن محتوى اللعبة ديناميكياً هنا -->
+            </div>
+        </div>
     </div>
 
-    <!-- Student: Grade Selection -->
-    <div id="view-student-grades" class="hidden">
-      <div class="dashboard-header">
-        <h1>🎓 اختر الصف</h1>
-        <p>اختر صفك للبدء في التعلم</p>
-      </div>
-      <div class="grade-selector" id="grade-selector"></div>
-    </div>
-
-    <!-- Student: Units for Grade -->
-    <div id="view-student-units" class="hidden">
-      <button class="back-btn" onclick="showView('view-student-grades')">→ العودة للصفوف</button>
-      <div class="dashboard-header">
-        <h1>📖 الوحدات المتاحة</h1>
-        <p id="student-grade-name"></p>
-      </div>
-      <div class="units-grid" id="student-units-grid"></div>
-    </div>
-
-    <!-- Student: Games in Unit -->
-    <div id="view-student-games" class="hidden">
-      <button class="back-btn" onclick="showView('view-student-units')">→ العودة للوحدات</button>
-      <div class="dashboard-header">
-        <h1 id="student-games-title"></h1>
-      </div>
-      <div class="games-grid" id="student-games-grid"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ========================
-     GAME SCREEN
-     ======================== -->
-<div id="game-screen" class="hidden">
-  <div class="game-top-bar">
-    <button class="back-btn" onclick="exitGame()">→ خروج</button>
-    <h2 id="game-title"></h2>
-    <div class="game-score" id="game-score-display">⭐ 0</div>
-    <div class="game-timer hidden" id="game-timer-display">⏱️ <span id="timer-value">60</span></div>
-  </div>
-
-  <div class="game-container" id="game-container">
-    <!-- Game content rendered dynamically by JS -->
-  </div>
-</div>
-
-<!-- Modal Container -->
-<div id="modal-container"></div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
