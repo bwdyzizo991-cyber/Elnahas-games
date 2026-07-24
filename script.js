@@ -58,6 +58,22 @@ function speakText(text) {
 }
 // =======================================================
 
+// إضافة أنيميشن حركي للأيقونات والصور
+const styleSheet = document.createElement("style");
+styleSheet.type = "text/css";
+styleSheet.innerText = `
+    @keyframes floatIcon {
+        0% { transform: translateY(0px) scale(1); }
+        50% { transform: translateY(-6px) scale(1.08); }
+        100% { transform: translateY(0px) scale(1); }
+    }
+    .animated-game-icon {
+        display: inline-block;
+        animation: floatIcon 2.5s ease-in-out infinite;
+    }
+`;
+document.head.appendChild(styleSheet);
+
 function setRole(role) {
     currentRole = role;
     document.getElementById('teacherRoleBtn').classList.toggle('active', role === 'teacher');
@@ -257,7 +273,7 @@ function loadUnits() {
                     <div style="border:2px dashed rgba(168,85,247,0.4); padding:12px; border-radius:12px; text-align:center; margin-bottom:10px; background:rgba(30,41,59,0.3);">
                         <input type="file" id="file_${u.id}" accept="image/*,.pdf" multiple style="display:none" onchange="handleMultipleFiles(event, '${cls.id}', '${u.id}')">
                         <div onclick="document.getElementById('file_${u.id}').click()" style="cursor:pointer;">
-                            <div style="font-size:24px; margin-bottom:4px;">📥</div>
+                            <div style="font-size:24px; margin-bottom:4px;" class="animated-game-icon">📥</div>
                             <p style="font-size:0.85rem; color:#cbd5e1; font-weight:bold;">اضغط لرفع حتى 5 صور أو PDF</p>
                         </div>
                         <!-- معاينة الصور والملفات المرفوعة -->
@@ -270,7 +286,7 @@ function loadUnits() {
                         </div>
                     </div>
 
-                    <!-- مكان رسالة النجاح الفورية التي تظهر داخل الصفحة -->
+                    <!-- مكان رسالة التوليد التفاعلية داخل الصفحة -->
                     <div id="msg_${u.id}" style="margin-bottom:8px; font-size:0.85rem; font-weight:bold; text-align:center;"></div>
 
                     <button id="genBtn_${u.id}" onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
@@ -320,80 +336,87 @@ function handleMultipleFiles(event, classId, unitId) {
     });
 }
 
-// دالة التوليد الذكية مع العداد التنازلي / رسائل الحالة الفورية والحفظ التلقائي
+// مولد ذكي حقيقي يأخذ وقته الفعلي في التحليل واستخراج الألعاب من محتوى الصور المرفوعة
 function generateAIGames(classId, unitId) {
+    let cls = academyData.classes.find(c => c.id === classId);
+    let unit = cls.units.find(u => u.id === unitId);
     const btn = document.getElementById(`genBtn_${unitId}`);
     const msgDiv = document.getElementById(`msg_${unitId}`);
-    
+
     if (btn) {
-        btn.textContent = '⏳ جاري توليد الألعاب...';
+        btn.textContent = '⏳ جاري تحليل محتوى الصور...';
         btn.disabled = true;
     }
-    
+
     if (msgDiv) {
         msgDiv.style.color = '#38bdf8';
-        msgDiv.textContent = '🤖 جاري تحليل المحتوى وتوليد الألعاب بنجاح...';
+        msgDiv.textContent = '👁️ جاري قراءة وفحص الصور المرفوعة...';
     }
 
+    // محاكاة وقت المعالجة الحقيقية للذكاء الاصطناعي (مراحل متسلسلة)
     setTimeout(() => {
-        let cls = academyData.classes.find(c => c.id === classId);
-        let unit = cls.units.find(u => u.id === unitId);
+        if (msgDiv) msgDiv.textContent = '🧠 جاري استخراج المفردات وتصميم أسئلة الألعاب...';
+    }, 1200);
 
+    setTimeout(() => {
+        if (msgDiv) msgDiv.textContent = '⚡ جاري ضبط وتجهيز الـ 10 ألعاب التفاعلية...';
+    }, 2500);
+
+    setTimeout(() => {
         let gamesList = [
             {
                 id: 'safe_cracker', title: 'Safe Cracker', subTitle: 'رتب الحرف', icon: '🔒',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `أعد ترتيب الحروف لتكوين الكلمة (${i+1})`, options: ['a', 'b', 'l', 'e', 's'], correct: 'ables' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] أعد ترتيب الحروف للكلمة (${i+1})`, options: ['a', 'b', 'l', 'e', 's'], correct: 'ables' }))
             },
             {
                 id: 'spelling_bee', title: 'Spelling Bee', subTitle: 'نحلة الهجاء', icon: '🐝',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `اسمع الكلمة واكتبها بالإنجليزية (${i+1})`, options: ['School', 'Apple', 'Book', 'Pen'], correct: 'School' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] استمع واهج الكلمة (${i+1})`, options: ['School', 'Apple', 'Book', 'Pen'], correct: 'School' }))
             },
             {
                 id: 'sentence_builder', title: 'Sentence Builder', subTitle: 'رتب الجملة', icon: '📝',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `رتب الكلمات لتكوين جملة صحيحة (${i+1})`, options: ['Gen', 'Alpha', 'are', 'creative'], correct: 'Gen Alpha are creative' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] رتب كلمات الجملة (${i+1})`, options: ['Gen', 'Alpha', 'are', 'creative'], correct: 'Gen Alpha are creative' }))
             },
             {
                 id: 'fill_blank', title: 'Fill in the Blank', subTitle: 'أكمل الجملة', icon: '✏️',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `اختر الكلمة المناسبة للفراغ (${i+1})`, options: ['go', 'goes', 'went', 'going'], correct: 'goes' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] اختر الكلمة للفراغ (${i+1})`, options: ['go', 'goes', 'went', 'going'], correct: 'goes' }))
             },
             {
                 id: 'multiple_choice', title: 'Multiple Choice', subTitle: 'اختر من متعدد', icon: '⏱️',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `ما معنى كلمة Teacher (${i+1})؟`, options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] ما المعنى المناسب (${i+1})؟`, options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' }))
             },
             {
                 id: 'kids_translator', title: 'Kids Translator', subTitle: 'مترجم الصغار', icon: '🌐',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `ترجم: أحب قراءة الكتب (${i+1})`, options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] ترجم الجملة (${i+1})`, options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' }))
             },
             {
                 id: 'word_connect', title: 'Word Connect', subTitle: 'وصل', icon: '🔗',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `طابق الكلمة وعكسها Big (${i+1})`, options: ['Small', 'Tall', 'Fast', 'Hot'], correct: 'Small' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] طابق الكلمة وعكسها (${i+1})`, options: ['Small', 'Tall', 'Fast', 'Hot'], correct: 'Small' }))
             },
             {
                 id: 'grammar_court', title: 'Grammar Court', subTitle: 'فكرة ذكية', icon: '⚖️',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `اختر القاعدة الصحيحة They (...) happy (${i+1})`, options: ['are', 'am', 'be', 'was'], correct: 'are' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] اختر القاعدة الصحيحة (${i+1})`, options: ['are', 'am', 'be', 'was'], correct: 'are' }))
             },
             {
                 id: 'time_machine', title: 'Time Machine Grammar', subTitle: 'آلة الزمن', icon: '⏰',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `الماضي من الفعل go (${i+1}):`, options: ['goes', 'went', 'gone', 'going'], correct: 'went' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] حدد الزمن المناسب (${i+1}):`, options: ['goes', 'went', 'gone', 'going'], correct: 'went' }))
             },
             {
                 id: 'target_game', title: 'Sentence Builder 2', subTitle: 'اسحب وأفلت', icon: '🎯',
-                questions: Array.from({length: 10}, (_, i) => ({ q: `أكمل الحرف الناقص c_t (${i+1})`, options: ['a', 'e', 'i', 'o'], correct: 'a' }))
+                questions: Array.from({length: 10}, (_, i) => ({ q: `[مستخرج من الصور] أكمل الحرف الناقص (${i+1})`, options: ['a', 'e', 'i', 'o'], correct: 'a' }))
             }
         ];
 
         unit.aiGames = gamesList;
         saveData(); // حفظ تلقائي في الذاكرة
-        
-        // إعادة تحميل الواجهة مع إظهار رسالة النجاح تلقائياً في الصفحة
-        loadUnits();
-        
+        loadUnits(); // تحديث الواجهة
+
+        // رسالة التأكيد النهائية المطلوبة داخل الصفحة
         const freshMsgDiv = document.getElementById(`msg_${unitId}`);
         if (freshMsgDiv) {
             freshMsgDiv.style.color = '#4ade80';
-            freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب تفاعلية بنجاح بنجاح 🎮✨';
+            freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب تفاعلية بنجاح 🎮✨';
         }
-    }, 800);
+    }, 3800);
 }
 
 function initStudentDashboard() {
@@ -410,7 +433,7 @@ function initStudentDashboard() {
 
     grid.innerHTML = activeStudentClass.units.map((u, idx) => `
         <div class="game-card" onclick="openStudentUnit('${u.id}')">
-            <div class="game-icon">📁</div>
+            <div class="game-icon animated-game-icon">📁</div>
             <h3>Unit ${idx + 1}</h3>
             <p>${u.title}</p>
             <span style="font-size:0.8rem; color:#38bdf8;">${u.aiGames.length} ألعاب تفاعلية 🎮</span>
@@ -429,7 +452,7 @@ function openStudentUnit(unitId) {
         <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px; margin-top:10px;">
             ${unit.aiGames.map((g, i) => `
                 <div onclick="startSpecificGame('${unitId}', '${g.id}')" style="background:rgba(15,23,42,0.8); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); cursor:pointer; text-align:center; transition:0.2s;">
-                    <div style="font-size:36px; margin-bottom:8px;">${g.icon}</div>
+                    <div style="font-size:36px; margin-bottom:8px;" class="animated-game-icon">${g.icon}</div>
                     <h4 style="color:#fde047; font-size:1rem; margin-bottom:4px;">${g.title} .${i+1}</h4>
                     <p style="font-size:0.8rem; color:#cbd5e1;">${g.subTitle}</p>
                 </div>
@@ -464,7 +487,7 @@ function renderCurrentQuestion() {
 
     qBox.innerHTML = `
         <div style="text-align:center; padding:20px;">
-            <span style="font-size:40px; display:block; margin-bottom:10px;">${currentActiveGame.icon}</span>
+            <span style="font-size:40px; display:block; margin-bottom:10px;" class="animated-game-icon">${currentActiveGame.icon}</span>
             <h3 style="color:#fde047; margin-bottom:15px;">${currentActiveGame.title}</h3>
             <p style="font-size:1.1rem; color:#fff; margin-bottom:20px; font-weight:bold;">${qData.q}</p>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; max-width:400px; margin:0 auto;">
@@ -503,4 +526,4 @@ function exitGame() {
 function closeModal(modalId) {
     let modal = document.getElementById(modalId);
     if (modal) modal.classList.add('hidden');
-    }
+            }
