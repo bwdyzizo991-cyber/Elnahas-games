@@ -240,7 +240,7 @@ function loadUnits() {
 
     container.innerHTML = `
         <div style="background:rgba(15,23,42,0.5); padding:15px; border-radius:12px; margin-bottom:15px; border:1px solid rgba(255,255,255,0.1);">
-            <h4 style="color:#38bdf8; margin-bottom:8px;">إضافة وحدة جديدة للرقم/الصف:</h4>
+            <h4 style="color:#38bdf8; margin-bottom:8px;">إضافة وحدة جديدة للصف:</h4>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="newUnitNameInput" placeholder="أدخل اسم الوحدة (مثال: Unit 1 - Animals)" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:#1e293b; color:#fff;">
                 <button onclick="addUnitDirect('${cls.id}')" style="background:#10b981; border:none; color:#fff; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">إضافة الوحدة 📁</button>
@@ -251,9 +251,10 @@ function loadUnits() {
             ${cls.units.map((u, index) => `
                 <div style="background:rgba(15,23,42,0.6); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
                     <h4 style="color:#fde047; margin-bottom:8px;">Unit ${index + 1}: ${u.title}</h4>
-                    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">صور/ملفات: ${u.media.length}/7 | ألعاب ذكاء اصطناعي: ${u.aiGames.length}</p>
-                    <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                        <button onclick="addMediaToUnit('${cls.id}', '${u.id}')" style="background:#0284c7; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">رفع صور/PDF 🖼️</button>
+                    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">ملفات مرفوعة: ${u.media.length}/7 | ألعاب ذكاء اصطناعي: ${u.aiGames.length}</p>
+                    <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
+                        <input type="file" id="file_${u.id}" accept="image/*,.pdf" style="display:none" onchange="handleFileSelect(event, '${cls.id}', '${u.id}')">
+                        <button onclick="document.getElementById('file_${u.id}').click()" style="background:#0284c7; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">رفع صور/PDF 🖼️</button>
                         <button onclick="generateAIGames('${cls.id}', '${u.id}')" style="background:#8b5cf6; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">توليد 10 ألعاب AI 🤖</button>
                     </div>
                 </div>
@@ -277,18 +278,22 @@ function addUnitDirect(classId) {
     alert('تمت إضافة الوحدة بنجاح ✅');
 }
 
-function addMediaToUnit(classId, unitId) {
+function handleFileSelect(event, classId, unitId) {
+    const file = event.target.files[0];
+    if (!file) return;
+
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
-    if (unit.media.length >= 7) return alert('تم الوصول للحد الأقصى (7 صور أو ملفات PDF لكل وحدة)!');
+    if (unit.media.length >= 7) return alert('تم الوصول للحد الأقصى (7 ملفات لكل وحدة)!');
 
-    let fileUrl = prompt('أدخل رابط الصورة التعليمية أو ملف الـ PDF:');
-    if (!fileUrl) return;
-
-    unit.media.push(fileUrl);
-    saveData();
-    loadUnits();
-    alert('تمت إضافة الملف بنجاح ✅');
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        unit.media.push({ name: file.name, url: e.target.result });
+        saveData();
+        loadUnits();
+        alert('تم رفع الملف بنجاح من جهازك ✅');
+    };
+    reader.readAsDataURL(file);
 }
 
 function generateAIGames(classId, unitId) {
@@ -346,18 +351,22 @@ function openStudentUnit(unitId) {
     let mediaHtml = unit.media.length > 0 ? `
         <h4 style="color:#38bdf8; margin-bottom:10px;">الصور والملفات التعليمية:</h4>
         <div style="display:flex; gap:10px; overflow-x:auto; margin-bottom:20px; padding-bottom:10px;">
-            ${unit.media.map(m => `<a href="${m}" target="_blank" style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; color:#fff; text-decoration:none;">عرض ملف 📄</a>`).join('')}
+            ${unit.media.map(m => `
+                <div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; text-align:center; min-width:120px;">
+                    <a href="${m.url}" target="_blank" style="color:#fff; text-decoration:none; display:block; font-size:0.9rem;" download="${m.name}">📄 ${m.name}</a>
+                </div>
+            `).join('')}
         </div>
     ` : '<p style="color:#94a3b8; margin-bottom:20px;">لا توجد ملفات مرفوعة لهذه الوحدة.</p>';
 
     let gamesHtml = unit.aiGames.length > 0 ? `
         <h4 style="color:#fde047; margin-bottom:10px;">الألعاب التفاعلية (10 ألعاب):</h4>
-        <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="display:flex; flexDirection:column; gap:12px;">
             ${unit.aiGames.map((g, i) => `
-                <div style="background:rgba(15,23,42,0.7); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                <div style="background:rgba(15,23,42,0.7); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                         <p style="font-weight:bold; color:#fff;">${i+1}. ${g.title}: ${g.q}</p>
-                        <button onclick="speakText('${g.q.replace(/'/g, "")}')" style="background:#0284c7; border:none; color:#fff; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem;" title="استمع للسؤال أو الكلمة">🔊 استمع</button>
+                        <button onclick="speakText('${g.q.replace(/'/g, "")}')" style="background:#0284c7; border:none; color:#fff; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem;">🔊 استمع</button>
                     </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
                         ${g.options.map(opt => `<button onclick="checkStudentAnswer('${opt}', '${g.correct}')" style="background:#334155; border:none; color:#fff; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s;">${opt}</button>`).join('')}
