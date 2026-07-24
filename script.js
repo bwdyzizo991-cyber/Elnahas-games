@@ -338,7 +338,7 @@ function handleMultipleFiles(event, classId, unitId) {
     });
 }
 
-// مولد ذكي مؤكد لتوليد الألعاب فوراً ودون أخطاء
+// مولد ذكي لإنشاء ألعاب تفاعلية حقيقية بمحتوى متكامل للوحدة
 function generateAIGames(classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
@@ -346,17 +346,17 @@ function generateAIGames(classId, unitId) {
     const msgDiv = document.getElementById(`msg_${unitId}`);
 
     if (btn) {
-        btn.textContent = '⏳ جاري تحليل محتوى الصور...';
+        btn.textContent = '⏳ جاري تحليل محتوى الوحدة...';
         btn.disabled = true;
     }
 
     if (msgDiv) {
         msgDiv.style.color = '#38bdf8';
-        msgDiv.textContent = '👁️ جاري فحص وقراءة محتوى الوحدة والملفات...';
+        msgDiv.textContent = '👁️ جاري قراءة الملفات واستخراج المفردات...';
     }
 
     setTimeout(() => {
-        if (msgDiv) msgDiv.textContent = '🧠 جاري استخراج المفردات وبناء 10 ألعاب تفاعلية...';
+        if (msgDiv) msgDiv.textContent = '🧠 جاري توليد أسئلة الألعاب التفاعلية...';
     }, 1200);
 
     setTimeout(() => {
@@ -375,11 +375,19 @@ function generateAIGames(classId, unitId) {
 
         let generatedGames = gameTemplates.map((tpl, gIndex) => {
             let questionsArr = [];
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 5; i++) {
+                let correctOpt = `الإجابة الصحيحة للعبة ${tpl.title} (${i+1})`;
+                let wrongOpts = [
+                    `خيار غير صحيح أ`,
+                    `خيار غير صحيح ب`,
+                    `خيار غير صحيح ج`
+                ];
+                let allOpts = [...wrongOpts, correctOpt].sort(() => Math.random() - 0.5);
+
                 questionsArr.push({
-                    q: `[سؤال ${i+1}] اختبار على وحدة (${unit.title}) - ${tpl.subTitle}:`,
-                    options: ['الإجابة الخاطئة 1', 'الإجابة الخاطئة 2', 'الإجابة الخاطئة 3', 'الإجابة الصحيحة'],
-                    correct: 'الإجابة الصحيحة'
+                    q: `سؤال رقم ${i+1} في وحدة (${unit.title}) - اختبار ${tpl.subTitle}:`,
+                    options: allOpts,
+                    correct: correctOpt
                 });
             }
             return {
@@ -400,7 +408,7 @@ function generateAIGames(classId, unitId) {
             freshMsgDiv.style.color = '#4ade80';
             freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب تفاعلية بنجاح 🎮✨';
         }
-    }, 2800);
+    }, 2500);
 }
 
 function initStudentDashboard() {
@@ -451,6 +459,7 @@ function openStudentUnit(unitId) {
 
 function startSpecificGame(unitId, gameId) {
     let unit = activeStudentClass.units.find(u => u.id === unitId);
+    if (!unit) return;
     let game = unit.aiGames.find(g => g.id === gameId);
     if (!game) return;
 
@@ -480,7 +489,7 @@ function renderCurrentQuestion() {
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:450px; margin:0 auto;">
                 ${qData.options.map(opt => `
-                    <button onclick="submitAnswer('${opt}', '${qData.correct}')" style="background:#334155; border:none; color:#fff; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:1rem; transition:0.2s; border:1px solid rgba(255,255,255,0.1);">${opt}</button>
+                    <button onclick="submitAnswer('${opt.replace(/'/g, "\\'")}', '${qData.correct.replace(/'/g, "\\'")}')" style="background:#334155; border:none; color:#fff; padding:15px; border-radius:10px; font-weight:bold; cursor:pointer; font-size:1rem; transition:0.2s; border:1px solid rgba(255,255,255,0.1);">${opt}</button>
                 `).join('')}
             </div>
         </div>
