@@ -260,9 +260,17 @@ function loadUnits() {
                             <div style="font-size:24px; margin-bottom:4px;">📥</div>
                             <p style="font-size:0.85rem; color:#cbd5e1; font-weight:bold;">اضغط لرفع حتى 5 صور أو PDF</p>
                         </div>
+                        <!-- معاينة الصور والملفات المرفوعة -->
+                        <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; justify-content:center;">
+                            ${u.media.map(m => m.url.startsWith('data:image') ? `
+                                <img src="${m.url}" style="width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #fff;" title="${m.name}">
+                            ` : `
+                                <span style="background:#334155; color:#fff; font-size:0.7rem; padding:2px 6px; border-radius:4px;">📄 PDF</span>
+                            `).join('')}
+                        </div>
                     </div>
 
-                    <button onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
+                    <button id="genBtn_${u.id}" onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
                         🤖 توليد 10 ألعاب ذكية
                     </button>
                 </div>
@@ -309,56 +317,65 @@ function handleMultipleFiles(event, classId, unitId) {
     });
 }
 
+// توليد الألعاب بشكل سريع وفعال مع تحديث نص الزر
 function generateAIGames(classId, unitId) {
-    let cls = academyData.classes.find(c => c.id === classId);
-    let unit = cls.units.find(u => u.id === unitId);
+    const btn = document.getElementById(`genBtn_${unitId}`);
+    if (btn) {
+        btn.textContent = '⏳ جاري توليد الألعاب...';
+        btn.disabled = true;
+    }
 
-    let gamesList = [
-        {
-            id: 'safe_cracker', title: 'Safe Cracker', subTitle: 'رتب الحرف', icon: '🔒',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `أعد ترتيب الحروف لتكوين الكلمة (${i+1})`, options: ['a', 'b', 'l', 'e', 's'], correct: 'ables' }))
-        },
-        {
-            id: 'spelling_bee', title: 'Spelling Bee', subTitle: 'نحلة الهجاء', icon: '🐝',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `اسمع الكلمة واكتبها بالإنجليزية (${i+1})`, options: ['School', 'Apple', 'Book', 'Pen'], correct: 'School' }))
-        },
-        {
-            id: 'sentence_builder', title: 'Sentence Builder', subTitle: 'رتب الجملة', icon: '📝',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `رتب الكلمات لتكوين جملة صحيحة (${i+1})`, options: ['Gen', 'Alpha', 'are', 'creative'], correct: 'Gen Alpha are creative' }))
-        },
-        {
-            id: 'fill_blank', title: 'Fill in the Blank', subTitle: 'أكمل الجملة', icon: '✏️',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `اختر الكلمة المناسبة للفراغ (${i+1})`, options: ['go', 'goes', 'went', 'going'], correct: 'goes' }))
-        },
-        {
-            id: 'multiple_choice', title: 'Multiple Choice', subTitle: 'اختر من متعدد', icon: '⏱️',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `ما معنى كلمة Teacher (${i+1})؟`, options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' }))
-        },
-        {
-            id: 'kids_translator', title: 'Kids Translator', subTitle: 'مترجم الصغار', icon: '🌐',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `ترجم: أحب قراءة الكتب (${i+1})`, options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' }))
-        },
-        {
-            id: 'word_connect', title: 'Word Connect', subTitle: 'وصل', icon: '🔗',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `طابق الكلمة وعكسها Big (${i+1})`, options: ['Small', 'Tall', 'Fast', 'Hot'], correct: 'Small' }))
-        },
-        {
-            id: 'grammar_court', title: 'Grammar Court', subTitle: 'فكرة ذكية', icon: '⚖️',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `اختر القاعدة الصحيحة They (...) happy (${i+1})`, options: ['are', 'am', 'be', 'was'], correct: 'are' }))
-        },
-        {
-            id: 'time_machine', title: 'Time Machine Grammar', subTitle: 'آلة الزمن', icon: '⏰',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `الماضي من الفعل go (${i+1}):`, options: ['goes', 'went', 'gone', 'going'], correct: 'went' }))
-        },
-        {
-            id: 'target_game', title: 'Sentence Builder 2', subTitle: 'اسحب وأفلت', icon: '🎯',
-            questions: Array.from({length: 10}, (_, i) => ({ q: `أكمل الحرف الناقص c_t (${i+1})`, options: ['a', 'e', 'i', 'o'], correct: 'a' }))
-        }
-    ];
+    setTimeout(() => {
+        let cls = academyData.classes.find(c => c.id === classId);
+        let unit = cls.units.find(u => u.id === unitId);
 
-    unit.aiGames = gamesList;
-    saveData();
-    loadUnits();
+        let gamesList = [
+            {
+                id: 'safe_cracker', title: 'Safe Cracker', subTitle: 'رتب الحرف', icon: '🔒',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `أعد ترتيب الحروف لتكوين الكلمة (${i+1})`, options: ['a', 'b', 'l', 'e', 's'], correct: 'ables' }))
+            },
+            {
+                id: 'spelling_bee', title: 'Spelling Bee', subTitle: 'نحلة الهجاء', icon: '🐝',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `اسمع الكلمة واكتبها بالإنجليزية (${i+1})`, options: ['School', 'Apple', 'Book', 'Pen'], correct: 'School' }))
+            },
+            {
+                id: 'sentence_builder', title: 'Sentence Builder', subTitle: 'رتب الجملة', icon: '📝',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `رتب الكلمات لتكوين جملة صحيحة (${i+1})`, options: ['Gen', 'Alpha', 'are', 'creative'], correct: 'Gen Alpha are creative' }))
+            },
+            {
+                id: 'fill_blank', title: 'Fill in the Blank', subTitle: 'أكمل الجملة', icon: '✏️',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `اختر الكلمة المناسبة للفراغ (${i+1})`, options: ['go', 'goes', 'went', 'going'], correct: 'goes' }))
+            },
+            {
+                id: 'multiple_choice', title: 'Multiple Choice', subTitle: 'اختر من متعدد', icon: '⏱️',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `ما معنى كلمة Teacher (${i+1})؟`, options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' }))
+            },
+            {
+                id: 'kids_translator', title: 'Kids Translator', subTitle: 'مترجم الصغار', icon: '🌐',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `ترجم: أحب قراءة الكتب (${i+1})`, options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' }))
+            },
+            {
+                id: 'word_connect', title: 'Word Connect', subTitle: 'وصل', icon: '🔗',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `طابق الكلمة وعكسها Big (${i+1})`, options: ['Small', 'Tall', 'Fast', 'Hot'], correct: 'Small' }))
+            },
+            {
+                id: 'grammar_court', title: 'Grammar Court', subTitle: 'فكرة ذكية', icon: '⚖️',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `اختر القاعدة الصحيحة They (...) happy (${i+1})`, options: ['are', 'am', 'be', 'was'], correct: 'are' }))
+            },
+            {
+                id: 'time_machine', title: 'Time Machine Grammar', subTitle: 'آلة الزمن', icon: '⏰',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `الماضي من الفعل go (${i+1}):`, options: ['goes', 'went', 'gone', 'going'], correct: 'went' }))
+            },
+            {
+                id: 'target_game', title: 'Sentence Builder 2', subTitle: 'اسحب وأفلت', icon: '🎯',
+                questions: Array.from({length: 10}, (_, i) => ({ q: `أكمل الحرف الناقص c_t (${i+1})`, options: ['a', 'e', 'i', 'o'], correct: 'a' }))
+            }
+        ];
+
+        unit.aiGames = gamesList;
+        saveData();
+        loadUnits();
+    }, 300);
 }
 
 function initStudentDashboard() {
