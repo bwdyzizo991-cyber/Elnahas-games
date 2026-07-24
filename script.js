@@ -3,7 +3,6 @@ let currentRole = 'teacher';
 let loggedInUser = null;
 let activeStudentClass = null;
 
-// متغيرات تتبع اللعبة الحالية للأسئلة المتتالية ديناميكياً
 let currentActiveGame = null;
 let currentQuestionIndex = 0;
 
@@ -11,7 +10,7 @@ function saveData() {
     localStorage.setItem('elnahasAcademyData', JSON.stringify(academyData));
 }
 
-// ================= نظام المؤثرات الصوتية والنطق (Audio & Speech) =================
+// ================= نظام الصوت والنطق =================
 function playCorrectSound() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -57,7 +56,7 @@ function speakText(text) {
         window.speechSynthesis.speak(utterance);
     }
 }
-// =========================================================================
+// =======================================================
 
 function setRole(role) {
     currentRole = role;
@@ -77,7 +76,7 @@ function handleLogin(event) {
             document.getElementById('teacherDashboard').classList.remove('hidden');
             initTeacherDashboard();
         } else {
-            alert('خطأ في اسم المستخدم أو كلمة المرور للمعلم ❌ (مستر غازي / النحاس99)');
+            alert('خطأ في اسم المستخدم أو كلمة المرور للمعلم ❌');
         }
     } else {
         let foundStudent = null;
@@ -149,13 +148,12 @@ function renderClassesDropdowns() {
 
 function addClass() {
     const name = document.getElementById('newClassName').value.trim();
-    if (!name) return alert('أدخل اسم الصف');
+    if (!name) return;
     academyData.classes.push({ id: 'class_' + Date.now(), name: name, students: [], units: [] });
     saveData();
     document.getElementById('newClassName').value = '';
     renderClassesDropdowns();
     renderClassesList();
-    alert('تم إضافة الصف بنجاح ✅');
 }
 
 function addStudent() {
@@ -163,7 +161,7 @@ function addStudent() {
     const name = document.getElementById('newStudentName').value.trim();
     const pass = document.getElementById('newStudentPass').value.trim();
 
-    if (!classId || !name || !pass) return alert('الرجاء استكمال بيانات الطالب');
+    if (!classId || !name || !pass) return;
     let cls = academyData.classes.find(c => c.id === classId);
     if (cls) {
         cls.students.push({ name, pass, stars: 0 });
@@ -171,7 +169,6 @@ function addStudent() {
         document.getElementById('newStudentName').value = '';
         document.getElementById('newStudentPass').value = '';
         renderClassesList();
-        alert('تم تسجيل الطالب بنجاح 👨‍🎓');
     }
 }
 
@@ -277,16 +274,15 @@ function loadUnits() {
 function addUnitDirect(classId) {
     const input = document.getElementById('newUnitNameInput');
     const unitTitle = input ? input.value.trim() : '';
-    if (!unitTitle) return alert('الرجاء كتابة اسم الوحدة أولاً!');
+    if (!unitTitle) return;
 
     let cls = academyData.classes.find(c => c.id === classId);
     if (!cls) return;
-    if (cls.units.length >= 12) return alert('عذراً، الحد الأقصى هو 12 وحدة فقط لكل صف!');
+    if (cls.units.length >= 12) return;
 
     cls.units.push({ id: 'unit_' + Date.now(), title: unitTitle, media: [], aiGames: [] });
     saveData();
     loadUnits();
-    alert('تمت إضافة الوحدة بنجاح ✅');
 }
 
 function handleMultipleFiles(event, classId, unitId) {
@@ -296,9 +292,7 @@ function handleMultipleFiles(event, classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
 
-    if (unit.media.length + files.length > 5) {
-        return alert('عذراً، الحد الأقصى هو 5 ملفات فقط لكل وحدة!');
-    }
+    if (unit.media.length + files.length > 5) return;
 
     let loadedCount = 0;
     files.forEach(file => {
@@ -319,7 +313,6 @@ function generateAIGames(classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
 
-    // توليد 10 ألعاب رئيسية، تحتوي كل لعبة بداخلها على 10 أسئلة تتالي ديناميكياً
     let gamesList = [
         {
             id: 'safe_cracker', title: 'Safe Cracker', subTitle: 'رتب الحرف', icon: '🔒',
@@ -366,7 +359,6 @@ function generateAIGames(classId, unitId) {
     unit.aiGames = gamesList;
     saveData();
     loadUnits();
-    alert('🤖 تم توليد 10 ألعاب تفاعلية بنجاح!');
 }
 
 function initStudentDashboard() {
@@ -391,7 +383,6 @@ function initStudentDashboard() {
     `).join('');
 }
 
-// فتح نافذة الوحدة (عرض الألعاب العشر مباشرة وبدون صور مرفقة في الأعلى)
 function openStudentUnit(unitId) {
     let unit = activeStudentClass.units.find(u => u.id === unitId);
     if (!unit) return;
@@ -415,7 +406,6 @@ function openStudentUnit(unitId) {
     document.getElementById('unitModal').classList.remove('hidden');
 }
 
-// بدء لعبة محددة والدخول لنظام الأسئلة الديناميكي المتتالي
 function startSpecificGame(unitId, gameId) {
     let unit = activeStudentClass.units.find(u => u.id === unitId);
     let game = unit.aiGames.find(g => g.id === gameId);
@@ -424,13 +414,11 @@ function startSpecificGame(unitId, gameId) {
     currentActiveGame = game;
     currentQuestionIndex = 0;
 
-    // إغلاق مودال الوحدة وفتح شاشة اللعب الديناميكية
     closeModal('unitModal');
     renderCurrentQuestion();
     document.getElementById('gamePlayModal').classList.remove('hidden');
 }
 
-// عرض السؤال الحالي ديناميكياً (سؤال بسؤال من 1 إلى 10)
 function renderCurrentQuestion() {
     let qBox = document.getElementById('gamePlayBody');
     let counter = document.getElementById('gameQuestionCounter');
@@ -453,7 +441,6 @@ function renderCurrentQuestion() {
     `;
 }
 
-// التحقق من الإجابة والانتقال التلقائي للسؤال التالي
 function submitAnswer(selected, correct) {
     if (selected === correct) {
         playCorrectSound();
@@ -466,13 +453,11 @@ function submitAnswer(selected, correct) {
             if (currentQuestionIndex < currentActiveGame.questions.length) {
                 renderCurrentQuestion();
             } else {
-                alert('🎉 مبروك! لقد أنهيت جميع أسئلة هذه اللعبة بنجاح!');
                 closeModal('gamePlayModal');
             }
         }, 500);
     } else {
         playWrongSound();
-        alert('❌ إجابة خاطئة، حاول مرة أخرى!');
     }
 }
 
