@@ -270,6 +270,9 @@ function loadUnits() {
                         </div>
                     </div>
 
+                    <!-- مكان رسالة النجاح الفورية التي تظهر داخل الصفحة -->
+                    <div id="msg_${u.id}" style="margin-bottom:8px; font-size:0.85rem; font-weight:bold; text-align:center;"></div>
+
                     <button id="genBtn_${u.id}" onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
                         🤖 توليد 10 ألعاب ذكية
                     </button>
@@ -317,12 +320,19 @@ function handleMultipleFiles(event, classId, unitId) {
     });
 }
 
-// توليد الألعاب بشكل سريع وفعال مع تحديث نص الزر
+// دالة التوليد الذكية مع العداد التنازلي / رسائل الحالة الفورية والحفظ التلقائي
 function generateAIGames(classId, unitId) {
     const btn = document.getElementById(`genBtn_${unitId}`);
+    const msgDiv = document.getElementById(`msg_${unitId}`);
+    
     if (btn) {
         btn.textContent = '⏳ جاري توليد الألعاب...';
         btn.disabled = true;
+    }
+    
+    if (msgDiv) {
+        msgDiv.style.color = '#38bdf8';
+        msgDiv.textContent = '🤖 جاري تحليل المحتوى وتوليد الألعاب بنجاح...';
     }
 
     setTimeout(() => {
@@ -373,9 +383,17 @@ function generateAIGames(classId, unitId) {
         ];
 
         unit.aiGames = gamesList;
-        saveData();
+        saveData(); // حفظ تلقائي في الذاكرة
+        
+        // إعادة تحميل الواجهة مع إظهار رسالة النجاح تلقائياً في الصفحة
         loadUnits();
-    }, 300);
+        
+        const freshMsgDiv = document.getElementById(`msg_${unitId}`);
+        if (freshMsgDiv) {
+            freshMsgDiv.style.color = '#4ade80';
+            freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب تفاعلية بنجاح بنجاح 🎮✨';
+        }
+    }, 800);
 }
 
 function initStudentDashboard() {
@@ -485,4 +503,4 @@ function exitGame() {
 function closeModal(modalId) {
     let modal = document.getElementById(modalId);
     if (modal) modal.classList.add('hidden');
-}
+    }
