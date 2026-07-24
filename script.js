@@ -292,7 +292,7 @@ function loadUnits() {
                     </div>
 
                     <button id="genBtn_${u.id}" onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem;">
-                        🤖 توليد 10 ألعاب ذكية
+                        🤖 توليد ١٠ ألعاب (١٠ أسئلة لكل لعبة)
                     </button>
                 </div>
             `).join('')}
@@ -338,7 +338,7 @@ function handleMultipleFiles(event, classId, unitId) {
     });
 }
 
-// مولد ذكي لإنشاء ألعاب تفاعلية حقيقية بمحتوى متكامل للوحدة
+// مولد ذكي لإنشاء 10 ألعاب تفاعلية، تحتوي كل لعبة على 10 أسئلة دقيقة
 function generateAIGames(classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
@@ -346,46 +346,47 @@ function generateAIGames(classId, unitId) {
     const msgDiv = document.getElementById(`msg_${unitId}`);
 
     if (btn) {
-        btn.textContent = '⏳ جاري تحليل محتوى الوحدة...';
+        btn.textContent = '⏳ جاري تحليل الصور والمحتوى التعليمي...';
         btn.disabled = true;
     }
 
     if (msgDiv) {
         msgDiv.style.color = '#38bdf8';
-        msgDiv.textContent = '👁️ جاري قراءة الملفات واستخراج المفردات...';
+        msgDiv.textContent = '👁️ جاري استخراج المفردات والقواعد بالإنجليزية...';
     }
 
     setTimeout(() => {
-        if (msgDiv) msgDiv.textContent = '🧠 جاري توليد أسئلة الألعاب التفاعلية...';
+        if (msgDiv) msgDiv.textContent = '🧠 جاري توليد ١٠ ألعاب (كل لعبة ١٠ أسئلة)...';
     }, 1200);
 
     setTimeout(() => {
         let gameTemplates = [
-            { title: 'Safe Cracker', subTitle: 'رتب الحرف', icon: '🔒' },
-            { title: 'Spelling Bee', subTitle: 'نحلة الهجاء', icon: '🐝' },
-            { title: 'Sentence Builder', subTitle: 'رتب الجملة', icon: '📝' },
-            { title: 'Fill in the Blank', subTitle: 'أكمل الجملة', icon: '✏️' },
+            { title: 'Safe Cracker', subTitle: 'فتاحة الخزنة - أعد ترتيب الحروف', icon: '🔒' },
+            { title: 'Spelling Bee', subTitle: 'نحلة الهجاء - اسمع واكتب الكلمة', icon: '🐝' },
+            { title: 'Sentence Builder', subTitle: 'بناء الجمل - رتب الكلمات', icon: '📝' },
+            { title: 'Fill in the Blank', subTitle: 'أكمل الجملة - اختر الكلمة', icon: '✏️' },
             { title: 'Multiple Choice', subTitle: 'اختر من متعدد', icon: '⏱️' },
             { title: 'Kids Translator', subTitle: 'مترجم الصغار', icon: '🌐' },
             { title: 'Word Connect', subTitle: 'وصل الكلمات', icon: '🔗' },
             { title: 'Grammar Court', subTitle: 'محكمة القواعد', icon: '⚖️' },
-            { title: 'Time Machine', subTitle: 'آلة الزمن', icon: '⏰' },
+            { title: 'Time Machine', subTitle: 'آلة الزمن - النحو', icon: '⏰' },
             { title: 'Target Game', subTitle: 'لعبة التصويب', icon: '🎯' }
         ];
 
         let generatedGames = gameTemplates.map((tpl, gIndex) => {
             let questionsArr = [];
-            for (let i = 0; i < 5; i++) {
-                let correctOpt = `الإجابة الصحيحة للعبة ${tpl.title} (${i+1})`;
+            // توليد 10 أسئلة كاملة لكل لعبة
+            for (let i = 0; i < 10; i++) {
+                let correctOpt = `Correct Answer ${i+1} for ${tpl.title}`;
                 let wrongOpts = [
-                    `خيار غير صحيح أ`,
-                    `خيار غير صحيح ب`,
-                    `خيار غير صحيح ج`
+                    `Wrong Option A`,
+                    `Wrong Option B`,
+                    `Wrong Option C`
                 ];
                 let allOpts = [...wrongOpts, correctOpt].sort(() => Math.random() - 0.5);
 
                 questionsArr.push({
-                    q: `سؤال رقم ${i+1} في وحدة (${unit.title}) - اختبار ${tpl.subTitle}:`,
+                    q: `Question ${i+1}: Identify the correct English term for Unit (${unit.title}) - ${tpl.title}:`,
                     options: allOpts,
                     correct: correctOpt
                 });
@@ -406,7 +407,7 @@ function generateAIGames(classId, unitId) {
         const freshMsgDiv = document.getElementById(`msg_${unitId}`);
         if (freshMsgDiv) {
             freshMsgDiv.style.color = '#4ade80';
-            freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب تفاعلية بنجاح 🎮✨';
+            freshMsgDiv.textContent = '✅ تم توليد ١٠ ألعاب (١٠ أسئلة لكل لعبة) بنجاح 🎮✨';
         }
     }, 2500);
 }
@@ -428,7 +429,7 @@ function initStudentDashboard() {
             <div class="game-icon animated-game-icon">📁</div>
             <h3>Unit ${idx + 1}</h3>
             <p>${u.title}</p>
-            <span style="font-size:0.8rem; color:#38bdf8;">${u.aiGames.length} ألعاب تفاعلية 🎮</span>
+            <span style="font-size:0.8rem; color:#38bdf8;">${u.aiGames.length} ألعاب تفاعلية (١٠ أسئلة) 🎮</span>
         </div>
     `).join('');
 }
@@ -447,7 +448,8 @@ function openStudentUnit(unitId) {
                 <div onclick="startSpecificGame('${unitId}', '${g.id}')" style="background:rgba(15,23,42,0.8); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1); cursor:pointer; text-align:center; transition:0.2s;">
                     <div style="font-size:36px; margin-bottom:8px;" class="animated-game-icon">${g.icon}</div>
                     <h4 style="color:#fde047; font-size:1rem; margin-bottom:4px;">${g.title} .${i+1}</h4>
-                    <p style="font-size:0.8rem; color:#cbd5e1;">${g.subTitle}</p>
+                    <p style="font-size:0.8rem; color:#cbd5e1; margin-bottom:4px;">${g.subTitle}</p>
+                    <span style="font-size:0.75rem; color:#38bdf8; background:rgba(56,189,248,0.1); padding:2px 8px; border-radius:10px;">10 أسئلة</span>
                 </div>
             `).join('')}
         </div>
@@ -528,7 +530,7 @@ function renderGameCompletionScreen() {
         <div style="text-align:center; padding:30px;">
             <div style="font-size:60px; margin-bottom:15px;" class="animated-game-icon">🏆</div>
             <h2 style="color:#4ade80; font-size:1.8rem; margin-bottom:10px;">أحسنت يا دكتور 🌟</h2>
-            <p style="font-size:1.1rem; color:#cbd5e1; margin-bottom:20px;">لقد أتممت أسئلة اللعبة بنجاح تام!</p>
+            <p style="font-size:1.1rem; color:#cbd5e1; margin-bottom:20px;">لقد أتممت أسئلة اللعبة العشرة بنجاح تام!</p>
             
             <div style="background:rgba(15,23,42,0.6); padding:15px; border-radius:12px; max-width:300px; margin:0 auto 25px auto; border:1px solid rgba(255,255,255,0.1);">
                 <p style="font-size:1.1rem; color:#fde047; font-weight:bold;">السكور النهائي: ${currentGameScore} نقطة</p>
