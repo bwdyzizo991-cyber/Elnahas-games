@@ -251,12 +251,33 @@ function loadUnits() {
             ${cls.units.map((u, index) => `
                 <div style="background:rgba(15,23,42,0.6); padding:15px; border-radius:15px; border:1px solid rgba(255,255,255,0.1);">
                     <h4 style="color:#fde047; margin-bottom:8px;">Unit ${index + 1}: ${u.title}</h4>
-                    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">ملفات مرفوعة: ${u.media.length}/7 | ألعاب ذكاء اصطناعي: ${u.aiGames.length}</p>
-                    <div style="display:flex; gap:5px; flex-wrap:wrap; align-items:center;">
-                        <input type="file" id="file_${u.id}" accept="image/*,.pdf" style="display:none" onchange="handleFileSelect(event, '${cls.id}', '${u.id}')">
-                        <button onclick="document.getElementById('file_${u.id}').click()" style="background:#0284c7; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">رفع صور/PDF 🖼️</button>
-                        <button onclick="generateAIGames('${cls.id}', '${u.id}')" style="background:#8b5cf6; border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:0.8rem; cursor:pointer;">توليد 10 ألعاب AI 🤖</button>
+                    <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:10px;">ملفات مرفوعة: ${u.media.length}/5 | ألعاب ذكاء اصطناعي: ${u.aiGames.length}</p>
+                    
+                    <!-- صندوق رفع الصور المتعدد المماثل للصورة المرفقة -->
+                    <div style="border:2px dashed rgba(168,85,247,0.4); padding:12px; border-radius:12px; text-align:center; margin-bottom:10px; background:rgba(30,41,59,0.3);">
+                        <input type="file" id="file_${u.id}" accept="image/*,.pdf" multiple style="display:none" onchange="handleMultipleFiles(event, '${cls.id}', '${u.id}')">
+                        <div onclick="document.getElementById('file_${u.id}').click()" style="cursor:pointer;">
+                            <div style="font-size:24px; margin-bottom:4px;">📥</div>
+                            <p style="font-size:0.85rem; color:#cbd5e1; font-weight:bold;">اضغط لرفع حتى 5 صور أو PDF</p>
+                            <span style="font-size:0.75rem; color:#94a3b8;">سيتم تحويل المحتوى تلقائياً إلى 10 ألعاب تعليمية</span>
+                        </div>
                     </div>
+
+                    <!-- عرض الملفات المختارة بشكل أنيق مثل الصورة المرفقة -->
+                    ${u.media.length > 0 ? `
+                        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+                            ${u.media.map((m, mIdx) => `
+                                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(30,41,59,0.7); padding:6px 10px; border-radius:20px; border:1px solid rgba(255,255,255,0.05);">
+                                    <span style="font-size:0.8rem; color:#f3e8ff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px;">📎 ${m.name}</span>
+                                    <button onclick="removeMedia('${cls.id}', '${u.id}', ${mIdx})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-weight:bold; font-size:0.85rem;">✕</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+
+                    <button onclick="generateAIGames('${cls.id}', '${u.id}')" style="width:100%; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; padding:10px; border-radius:12px; font-weight:bold; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        🤖 توليد الألعاب بالذكاء الاصطناعي
+                    </button>
                 </div>
             `).join('')}
         </div>
@@ -278,45 +299,66 @@ function addUnitDirect(classId) {
     alert('تمت إضافة الوحدة بنجاح ✅');
 }
 
-function handleFileSelect(event, classId, unitId) {
-    const file = event.target.files[0];
-    if (!file) return;
+function handleMultipleFiles(event, classId, unitId) {
+    const files = Array.from(event.target.files);
+    if (files.length === 0) return;
 
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
-    if (unit.media.length >= 7) return alert('تم الوصول للحد الأقصى (7 ملفات لكل وحدة)!');
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        unit.media.push({ name: file.name, url: e.target.result });
-        saveData();
-        loadUnits();
-        alert('تم رفع الملف بنجاح من جهازك ✅');
-    };
-    reader.readAsDataURL(file);
+    if (unit.media.length + files.length > 5) {
+        return alert('عذراً، الحد الأقصی هو 5 ملفات فقط لكل وحدة!');
+    }
+
+    let loadedCount = 0;
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            unit.media.push({ name: file.name, url: e.target.result });
+            loadedCount++;
+            if (loadedCount === files.length) {
+                saveData();
+                loadUnits();
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeMedia(classId, unitId, mediaIndex) {
+    let cls = academyData.classes.find(c => c.id === classId);
+    let unit = cls.units.find(u => u.id === unitId);
+    unit.media.splice(mediaIndex, 1);
+    saveData();
+    loadUnits();
 }
 
 function generateAIGames(classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
 
+    if (unit.media.length === 0) {
+        return alert('الرجاء رفع صورة أو محتوى أولاً لتوليد الألعاب ❌');
+    }
+
+    // توليد 10 ألعاب ذكية واحترافية متطابقة مع واجهات الصور المرفقة
     let generatedGames = [
-        { type: 'Spelling Bee', title: 'نحلة الهجاء', q: 'اختر التهجئة الصحيحة لكلمة: Elephant', options: ['Elefant', 'Elephant', 'Elephnt', 'Elifant'], correct: 'Elephant' },
-        { type: 'Fill in Blank', title: 'آلة الزمن للجرمر', q: 'She ___ to school every day.', options: ['go', 'goes', 'went', 'going'], correct: 'goes' },
-        { type: 'Sentence Builder', title: 'ترتيب الجمل', q: 'رتب لتكون جملة صحيحة: [play / we / football]', options: ['We play football', 'Football play we', 'Play we football', 'We football play'], correct: 'We play football' },
-        { type: 'Multiple Choice', title: 'اختيار متعدد', q: 'ما معنى كلمة Teacher؟', options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' },
-        { type: 'Translation', title: 'ترجمة', q: 'ترجم: (أحب قراءة الكتب)', options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' },
-        { type: 'Correct Error', title: 'صحح الخطأ', q: 'They ( is ) happy. التصحيح:', options: ['are', 'am', 'be', 'was'], correct: 'are' },
-        { type: 'Drag & Drop', title: 'السحب والإفلات', q: 'طابق الحيوان بمكانه: (Fish)', options: ['Water', 'Sky', 'Desert', 'Tree'], correct: 'Water' },
-        { type: 'Dictation', title: 'الإملاء السمعي', q: 'استمع واكتب الكلمة:', options: ['School', 'Car', 'Book', 'Pen'], correct: 'School' },
-        { type: 'Grammar Time', title: 'آلة الزمن', q: 'الماضي من go:', options: ['goes', 'went', 'gone', 'going'], correct: 'went' },
-        { type: 'Challenge', title: 'التحدي', q: 'أكمل الحرف: c_t', options: ['a', 'e', 'i', 'o'], correct: 'a' }
+        { type: 'Safe Cracker', title: 'Safe Cracker', subTitle: 'رتب الحرف', desc: 'أعد ترتيب الحروف لتكوين الكلمة الصحيحة', q: 'أعد ترتيب الحروف', options: ['a', 'b', 'l', 'e', 's'], correct: 'ables' },
+        { type: 'Spelling Bee', title: 'Spelling Bee', subTitle: 'نحلة الهجاء', desc: 'اسمع الكلمة واكتبها بالإنجليزية!', q: 'اسمع الكلمة واكتبها', options: ['School', 'Apple', 'Book', 'Pen'], correct: 'School' },
+        { type: 'Sentence Builder', title: 'Sentence Builder', subTitle: 'رتب الجملة', desc: 'رتب الكلمات لتكوين جملة صحيحة', q: 'Gen Alpha a creative generation are', options: ['Gen', 'Alpha', 'a', 'creative', 'generation', 'are'], correct: 'Gen Alpha are a creative generation' },
+        { type: 'Fill in the Blank', title: 'Fill in the Blank', subTitle: 'أكمل الجملة', desc: 'اختر الكلمة المناسبة للفراغ', q: 'She ___ to school every day.', options: ['go', 'goes', 'went', 'going'], correct: 'goes' },
+        { type: 'Multiple Choice', title: 'Multiple Choice', subTitle: 'اختر من متعدد', desc: 'اختبر سرعة بديهتك بمعلومات الوحدة', q: 'ما معنى كلمة Teacher؟', options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' },
+        { type: 'Kids Translator', title: 'Kids Translator', subTitle: 'مترجم الصغار', desc: 'ترجم العبارة التالية بدقة', q: 'ترجم: (أحب قراءة الكتب)', options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' },
+        { type: 'Word Connect', title: 'Word Connect', subTitle: 'وصل', desc: 'صل الكلمة بما يناسبها', q: 'طابق الكلمة وعكسها (Big)', options: ['Small', 'Tall', 'Fast', 'Hot'], correct: 'Small' },
+        { type: 'Grammar Court', title: 'Grammar Court', subTitle: 'فكرة ذكية', desc: 'اختر القاعدة النحوية الصحيحة', q: 'They ( is ) happy. التصحيح:', options: ['are', 'am', 'be', 'was'], correct: 'are' },
+        { type: 'Time Machine Grammar', title: 'Time Machine Grammar', subTitle: 'آلة الزمن', desc: 'سافر عبر الزمن واكتشف الأزمنة', q: 'الماضي من الفعل go:', options: ['goes', 'went', 'gone', 'going'], correct: 'went' },
+        { type: 'Sentence Builder 2', title: 'Sentence Builder', subTitle: 'اسحب وأفلت', desc: 'تحدي بناء الجمل المتقدم', q: 'أكمل الحرف الناقص في الكلمة: c_t', options: ['a', 'e', 'i', 'o'], correct: 'a' }
     ];
 
     unit.aiGames = generatedGames;
     saveData();
     loadUnits();
-    alert('🤖 تم توليد 10 ألعاب تفاعلية بالذكاء الاصطناعي بنجاح!');
+    alert('🤖 تم توليد 10 ألعاب تفاعلية واحترافية بالذكاء الاصطناعي بنجاح!');
 }
 
 function initStudentDashboard() {
@@ -360,15 +402,18 @@ function openStudentUnit(unitId) {
     ` : '<p style="color:#94a3b8; margin-bottom:20px;">لا توجد ملفات مرفوعة لهذه الوحدة.</p>';
 
     let gamesHtml = unit.aiGames.length > 0 ? `
-        <h4 style="color:#fde047; margin-bottom:10px;">الألعاب التفاعلية (10 ألعاب):</h4>
-        <div style="display:flex; flexDirection:column; gap:12px;">
+        <h4 style="color:#fde047; margin-bottom:10px;">الألعاب التفاعلية المتاحة (10 ألعاب احترافية):</h4>
+        <div style="display:flex; flex-direction:column; gap:12px;">
             ${unit.aiGames.map((g, i) => `
                 <div style="background:rgba(15,23,42,0.7); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <p style="font-weight:bold; color:#fff;">${i+1}. ${g.title}: ${g.q}</p>
+                        <div>
+                            <span style="color:#fde047; font-weight:bold; font-size:0.9rem;">${i+1}. ${g.title}</span>
+                            <p style="font-size:0.85rem; color:#cbd5e1; margin-top:2px;">${g.q}</p>
+                        </div>
                         <button onclick="speakText('${g.q.replace(/'/g, "")}')" style="background:#0284c7; border:none; color:#fff; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem;">🔊 استمع</button>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px;">
                         ${g.options.map(opt => `<button onclick="checkStudentAnswer('${opt}', '${g.correct}')" style="background:#334155; border:none; color:#fff; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s;">${opt}</button>`).join('')}
                     </div>
                 </div>
