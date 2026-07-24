@@ -1,8 +1,4 @@
-// تخزين البيانات باستخدام LocalStorage لضمان استمرارية النظام وديناميكيته
-let academyData = JSON.parse(localStorage.getItem('elnahasAcademyData')) || {
-    classes: [], // [{id, name, students: [{name, pass, stars}], units: [...]}]
-};
-
+let academyData = JSON.parse(localStorage.getItem('elnahasAcademyData')) || { classes: [] };
 let currentRole = 'teacher';
 let loggedInUser = null;
 let activeStudentClass = null;
@@ -10,6 +6,55 @@ let activeStudentClass = null;
 function saveData() {
     localStorage.setItem('elnahasAcademyData', JSON.stringify(academyData));
 }
+
+// ================= نظام المؤثرات الصوتية والنطق (Audio & Speech) =================
+function playCorrectSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    } catch(e) {}
+
+    // تشغيل عبارات تعزيزية صوتية (أحسنت، برافو، ممتاز يا دكتور)
+    const phrases = ["أحسنت", "برافو عليك", "ممتاز يا دكتور"];
+    let randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    speakText(randomPhrase);
+}
+
+function playWrongSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        let utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = text.match(/[ا-ي]/) ? 'ar-EG' : 'en-US';
+        window.speechSynthesis.speak(utterance);
+    }
+}
+// =========================================================================
 
 function setRole(role) {
     currentRole = role;
@@ -32,7 +77,6 @@ function handleLogin(event) {
             alert('خطأ في اسم المستخدم أو كلمة المرور للمعلم ❌ (مستر غازي / النحاس99)');
         }
     } else {
-        // التحقق من بيانات الطالب في أي صف
         let foundStudent = null;
         let studentClass = null;
         for (let cls of academyData.classes) {
@@ -73,7 +117,6 @@ function switchTab(tabId) {
     if (tabId === 'contentTab') initContentTab();
 }
 
-// ================= لوحة تحكم المعلم =================
 function initTeacherDashboard() {
     renderClassesDropdowns();
     renderClassesList();
@@ -102,12 +145,7 @@ function renderClassesDropdowns() {
 function addClass() {
     const name = document.getElementById('newClassName').value.trim();
     if (!name) return alert('أدخل اسم الصف');
-    academyData.classes.push({
-        id: 'class_' + Date.now(),
-        name: name,
-        students: [],
-        units: [] // بحد أقصى 12 وحدة
-    });
+    academyData.classes.push({ id: 'class_' + Date.now(), name: name, students: [], units: [] });
     saveData();
     document.getElementById('newClassName').value = '';
     renderClassesDropdowns();
@@ -148,7 +186,6 @@ function renderClassesList() {
     `).join('');
 }
 
-// نتائج الطلاب المرتبة أبجدياً
 function renderResults() {
     const container = document.getElementById('resultsContainer');
     if (academyData.classes.length === 0) {
@@ -157,7 +194,6 @@ function renderResults() {
     }
 
     container.innerHTML = academyData.classes.map(cls => {
-        // ترتيب الطلاب أبجدياً
         let sortedStudents = [...cls.students].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
         return `
             <div style="margin-bottom:20px;">
@@ -187,7 +223,6 @@ function renderResults() {
     }).join('');
 }
 
-// إدارة المحتوى (حتى 12 وحدة + رفع 7 صور/PDF + توليد 10 ألعاب بالذكاء الاصطناعي)
 function initContentTab() {
     renderClassesDropdowns();
 }
@@ -224,12 +259,7 @@ function addUnit() {
     let unitTitle = prompt('أدخل عنوان الوحدة (مثال: Animals & Nature):');
     if (!unitTitle) return;
 
-    cls.units.push({
-        id: 'unit_' + Date.now(),
-        title: unitTitle,
-        media: [], // حتى 7 صور أو ملفات PDF
-        aiGames: [] // الألعاب المولدة تلقائياً
-    });
+    cls.units.push({ id: 'unit_' + Date.now(), title: unitTitle, media: [], aiGames: [] });
     saveData();
     loadUnits();
 }
@@ -248,32 +278,29 @@ function addMediaToUnit(classId, unitId) {
     alert('تمت إضافة الملف بنجاح ✅');
 }
 
-// توليد 10 ألعاب تفاعلية بالذكاء الاصطناعي وتظهر فوراً للمعلم والطالب
 function generateAIGames(classId, unitId) {
     let cls = academyData.classes.find(c => c.id === classId);
     let unit = cls.units.find(u => u.id === unitId);
 
-    // محاكاة توليد 10 ألعاب بالذكاء الاصطناعي (هجاء، إملاء، ترتيب جمل، توصيل، اختيار متعدد، ترجمة، آلة الزمن جرمر، صحح الخطأ، Drag & Drop)
     let generatedGames = [
-        { type: 'Spelling Bee', title: 'نحلة الهجاء (تهجئة الكلمة)', q: 'اختر التهجئة الصحيحة لكلمة: Elephant', options: ['Elefant', 'Elephant', 'Elephnt', 'Elifant'], correct: 'Elephant' },
-        { type: 'Fill in Blank', title: 'آلة الزمن للجرمر (أكمل الفراغ)', q: 'She ___ to school every day.', options: ['go', 'goes', 'went', 'going'], correct: 'goes' },
-        { type: 'Sentence Builder', title: 'ترتيب الجمل الإنجليزية', q: 'رتب لتكون جملة صحيحة: [play / we / football]', options: ['We play football', 'Football play we', 'Play we football', 'We football play'], correct: 'We play football' },
-        { type: 'Multiple Choice', title: 'اختيار متعدد (Vocabulary)', q: 'ما معنى كلمة Teacher؟', options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' },
-        { type: 'Translation', title: 'ترجمة فورية', q: 'ترجم الجملة التالية: (أحب قراءة الكتب)', options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' },
-        { type: 'Correct Error', title: 'صحح الخطأ بين الاقواس', q: 'They ( is ) happy. التصحيح هو:', options: ['are', 'am', 'be', 'was'], correct: 'are' },
-        { type: 'Drag & Drop', title: 'السحب والإفلات (المطابقة)', q: 'طابق الحيوان مع مكانه المناسب: (Fish)', options: ['Water', 'Sky', 'Desert', 'Tree'], correct: 'Water' },
-        { type: 'Dictation', title: 'الإملاء السمعي', q: 'استمع واكتب الكلمة الصحيحة:', options: ['School', 'Car', 'Book', 'Pen'], correct: 'School' },
-        { type: 'Grammar Time', title: 'آلة الزمن (Past Simple)', q: 'ما الماضي البسيط من فعل go؟', options: ['goes', 'went', 'gone', 'going'], correct: 'went' },
-        { type: 'Challenge', title: 'التحدي النهائي', q: 'أكمل الحرف الناقص: c_t', options: ['a', 'e', 'i', 'o'], correct: 'a' }
+        { type: 'Spelling Bee', title: 'نحلة الهجاء', q: 'اختر التهجئة الصحيحة لكلمة: Elephant', options: ['Elefant', 'Elephant', 'Elephnt', 'Elifant'], correct: 'Elephant' },
+        { type: 'Fill in Blank', title: 'آلة الزمن للجرمر', q: 'She ___ to school every day.', options: ['go', 'goes', 'went', 'going'], correct: 'goes' },
+        { type: 'Sentence Builder', title: 'ترتيب الجمل', q: 'رتب لتكون جملة صحيحة: [play / we / football]', options: ['We play football', 'Football play we', 'Play we football', 'We football play'], correct: 'We play football' },
+        { type: 'Multiple Choice', title: 'اختيار متعدد', q: 'ما معنى كلمة Teacher؟', options: ['طبيب', 'معلم', 'مهندس', 'شرطي'], correct: 'معلم' },
+        { type: 'Translation', title: 'ترجمة', q: 'ترجم: (أحب قراءة الكتب)', options: ['I like reading books', 'I play football', 'I go to school', 'I eat apple'], correct: 'I like reading books' },
+        { type: 'Correct Error', title: 'صحح الخطأ', q: 'They ( is ) happy. التصحيح:', options: ['are', 'am', 'be', 'was'], correct: 'are' },
+        { type: 'Drag & Drop', title: 'السحب والإفلات', q: 'طابق الحيوان بمكانه: (Fish)', options: ['Water', 'Sky', 'Desert', 'Tree'], correct: 'Water' },
+        { type: 'Dictation', title: 'الإملاء السمعي', q: 'استمع واكتب الكلمة:', options: ['School', 'Car', 'Book', 'Pen'], correct: 'School' },
+        { type: 'Grammar Time', title: 'آلة الزمن', q: 'الماضي من go:', options: ['goes', 'went', 'gone', 'going'], correct: 'went' },
+        { type: 'Challenge', title: 'التحدي', q: 'أكمل الحرف: c_t', options: ['a', 'e', 'i', 'o'], correct: 'a' }
     ];
 
     unit.aiGames = generatedGames;
     saveData();
     loadUnits();
-    alert('🤖 تم توليد 10 ألعاب تفاعلية بالذكاء الاصطناعي بنجاح وتظهر الآن فوراً في هذه الوحدة لدى المعلم والطالب!');
+    alert('🤖 تم توليد 10 ألعاب تفاعلية بالذكاء الاصطناعي بنجاح!');
 }
 
-// ================= منصة الطالب =================
 function initStudentDashboard() {
     document.getElementById('studentWelcomeName').textContent = `👋 ${loggedInUser.name}`;
     document.getElementById('studentGradeDisplay').textContent = activeStudentClass.name;
@@ -310,13 +337,16 @@ function openStudentUnit(unitId) {
     ` : '<p style="color:#94a3b8; margin-bottom:20px;">لا توجد ملفات مرفوعة لهذه الوحدة.</p>';
 
     let gamesHtml = unit.aiGames.length > 0 ? `
-        <h4 style="color:#fde047; margin-bottom:10px;">الألعاب التفاعلية المולدة (10 ألعاب):</h4>
-        <div style="display:flex; flex-direction:column; gap:10px;">
+        <h4 style="color:#fde047; margin-bottom:10px;">الألعاب التفاعلية (10 ألعاب):</h4>
+        <div style="display:flex; flex-direction:column; gap:12px;">
             ${unit.aiGames.map((g, i) => `
-                <div style="background:rgba(15,23,42,0.7); padding:15px; border-radius:12px;">
-                    <p style="font-weight:bold; color:#fff; margin-bottom:8px;">${i+1}. ${g.title}: ${g.q}</p>
+                <div style="background:rgba(15,23,42,0.7); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <p style="font-weight:bold; color:#fff;">${i+1}. ${g.title}: ${g.q}</p>
+                        <button onclick="speakText('${g.q.replace(/'/g, "")}')" style="background:#0284c7; border:none; color:#fff; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:0.85rem;" title="استمع للسؤال أو الكلمة">🔊 استمع</button>
+                    </div>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                        ${g.options.map(opt => `<button onclick="checkStudentAnswer('${opt}', '${g.correct}')" style="background:#334155; border:none; color:#fff; padding:8px; border-radius:8px; cursor:pointer;">${opt}</button>`).join('')}
+                        ${g.options.map(opt => `<button onclick="checkStudentAnswer('${opt}', '${g.correct}')" style="background:#334155; border:none; color:#fff; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s;">${opt}</button>`).join('')}
                     </div>
                 </div>
             `).join('')}
@@ -329,13 +359,19 @@ function openStudentUnit(unitId) {
 
 function checkStudentAnswer(selected, correct) {
     if (selected === correct) {
-        alert('إجابة صحيحة! أحسنت 🎉 (+10 نجوم)');
+        playCorrectSound();
         loggedInUser.stars += 10;
         document.getElementById('studentTotalStars').textContent = loggedInUser.stars;
         saveData();
+        setTimeout(() => alert('إجابة صحيحة! أحسنت 🎉 (+10 نجوم)'), 200);
     } else {
-        alert('إجابة خاطئة، حاول مرة أخرى! ❌');
+        playWrongSound();
+        setTimeout(() => alert('إجابة خاطئة، حاول مرة أخرى! ❌'), 200);
     }
+}
+
+function openPlatformImageModal() {
+    document.getElementById('platformImageModal').classList.remove('hidden');
 }
 
 function closeModal(modalId) {
