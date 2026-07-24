@@ -50,6 +50,8 @@
                 <span class="academy-title">لوحة تحكم المعلم - النحاس أكاديمي</span>
                 <span class="student-grade">مستر غازي 👨‍🏫</span>
             </div>
+            <!-- زر لعرض صورة المنصة الصحيحة -->
+            <button class="nav-btn" onclick="openPlatformImageModal()" style="background:#0284c7;">🖼️ عرض صورة المنصة الرسمية</button>
             <button class="exit-btn" onclick="logout()">تسجيل خروج</button>
         </header>
 
@@ -60,7 +62,6 @@
         </nav>
 
         <main class="dashboard-content">
-            <!-- تبويب إدارة الصفوف والطلاب -->
             <div id="classesTab" class="tab-content">
                 <div class="card-box">
                     <h3>إضافة صف دراسي جديد</h3>
@@ -84,7 +85,6 @@
                 </div>
             </div>
 
-            <!-- تبويب نتائج الطلاب -->
             <div id="resultsTab" class="tab-content hidden">
                 <div class="card-box">
                     <h3>نتائج وترتيب الطلاب</h3>
@@ -92,7 +92,6 @@
                 </div>
             </div>
 
-            <!-- تبويب المحتوى التعليمي والوحدات والألعاب -->
             <div id="contentTab" class="tab-content hidden">
                 <div class="card-box">
                     <h3>إدارة المحتوى والوحدات (حتى 12 وحدة لكل صف)</h3>
@@ -127,7 +126,7 @@
         </main>
     </div>
 
-    <!-- نافذة عرض محتوى الوحدة (صور/PDF/ألعاب تفاعلية) -->
+    <!-- نافذة عرض محتوى الوحدة أو صورة المنصة -->
     <div id="unitModal" class="modal hidden">
         <div class="modal-content large-modal">
             <div class="modal-header">
@@ -135,6 +134,17 @@
                 <button class="close-modal" onclick="closeModal('unitModal')">✕</button>
             </div>
             <div id="unitModalBody"></div>
+        </div>
+    </div>
+
+    <!-- نافذة عرض صورة المنصة الصحيحة -->
+    <div id="platformImageModal" class="modal hidden">
+        <div class="modal-content large-modal" style="text-align: center;">
+            <div class="modal-header">
+                <h3>صورة المنصة الرسمية - النحاس أكاديمي</h3>
+                <button class="close-modal" onclick="closeModal('platformImageModal')">✕</button>
+            </div>
+            <img src="platform-preview.png" alt="صورة المنصة الصحيحة" style="max-width: 100%; border-radius: 12px; margin-top: 10px;" onerror="this.src='https://i.imgur.com/6O191NN.png'; alert('تأكد من رفع صورة المنصة باسم platform-preview.png في المستودع');">
         </div>
     </div>
 
